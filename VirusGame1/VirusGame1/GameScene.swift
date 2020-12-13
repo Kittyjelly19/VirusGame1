@@ -13,6 +13,16 @@ class GameScene: SKScene
 {
     var player:SKSpriteNode!
     var virus:SKSpriteNode!
+    var scoreText:SKLabelNode!
+    
+    var score: Int = 0
+    {
+        //Updates the score text with the current score value.
+        didSet
+        {
+            scoreText.text = "Score: \(score)"
+        }
+    }
     
     override func didMove(to view: SKView)
     {
@@ -25,18 +35,14 @@ class GameScene: SKScene
     func InitScene()
        {
         
-        backgroundColor = UIColor(red: 44/255, green: 40/255, blue: 80/255, alpha: 1.0)
         let border = SKPhysicsBody(edgeLoopFrom: self.frame)
         border.friction = 0
         border.restitution = 1
-        
         self.physicsBody = border
         
-        //Adding player to scene
-        player = SKSpriteNode(imageNamed: "ball")
-        player.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
-        player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
-        self.addChild(player)
+         backgroundColor = UIColor(red: 44/255, green: 40/255, blue: 80/255, alpha: 1.0)
+        
+        SpawnPlayer()
         SpawnVirus()
         
     }
@@ -52,5 +58,13 @@ class GameScene: SKScene
         self.physicsBody = ballcol
         virus.physicsBody?.applyImpulse(CGVector(dx:0, dy: -20))
          self.addChild(virus)
+    }
+    func SpawnPlayer()
+    {
+        //Adding player to scene
+        player = SKSpriteNode(imageNamed: "ball")
+        player.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
+        player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
+        self.addChild(player)
     }
 }
