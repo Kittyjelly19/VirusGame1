@@ -7,14 +7,19 @@
 //
 
 import SpriteKit
+import GameplayKit
 
-
-class GameScene: SKScene
+class GameScene: SKScene, SKPhysicsContactDelegate
 {
     var player:SKSpriteNode!
     var virus:SKSpriteNode!
     var scoreText:SKLabelNode!
     var gameTimerHandle:Timer!
+    var virusVariants = ["ball", "ColorCircle"]
+    
+    //Properties that allow for each category to have a unique ID to detect collisions.
+    let virusCat:UInt32 = 0x1 << 1
+    let sanitizerBullet:UInt32
     
     var score: Int = 0
     {
@@ -29,6 +34,7 @@ class GameScene: SKScene
     {
         InitScene()
         self.physicsWorld.gravity = CGVector(dx: 0, dy: 0)
+        
        
         
     }
@@ -48,20 +54,24 @@ class GameScene: SKScene
         
         //Spawn scene components
         SpawnPlayer()
-        SpawnVirus()
         DisplayScore()
+        
+        gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
     }
     
     //Spawn virus function.
-    func SpawnVirus()
+    @objc func SpawnVirus()
     {
-        virus = SKSpriteNode(imageNamed: "ball")
+        virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
+        let virus = SKSpriteNode(imageNamed: virusVariants[0])
+        let randVirusPos = GKRandomDistribution(lowestValue: 0, highestValue: 414)
+        let position = CGFloat(randVirusPos.nextInt())
+        virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.height)
         virus.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
-        virus.position = CGPoint(x: frame.midX, y: frame.maxY - virus.size.height)
+        //virus.position = CGPoint(x: frame.midX, y: frame.maxY - virus.size.height)
        
-        let ballcol = SKPhysicsBody(circleOfRadius: virus.size.width)
-        self.physicsBody = ballcol
-        virus.physicsBody?.applyImpulse(CGVector(dx:0, dy: -20))
+        virus.physicsBody = SKPhysicsBody(circleOfRadius: virus.size.width / 2)
+        virus.physicsBody?.isDynamic = true
          self.addChild(virus)
     }
     
@@ -73,6 +83,7 @@ class GameScene: SKScene
         player.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
         player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
         self.addChild(player)
+        self.physicsWorld.contactDelegate = self
     }
     
     //Display Score function
