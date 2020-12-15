@@ -96,8 +96,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     func SpawnPlayer()
     {
         //Adding player to scene
-        player = SKSpriteNode(imageNamed: "ball")
-        player.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
+        player = SKSpriteNode(imageNamed: "bottle")
+        player.size = CGSize(width: frame.size.width/2.5, height: frame.size.width/2.5)
         player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
         self.addChild(player)
         self.physicsWorld.contactDelegate = self
