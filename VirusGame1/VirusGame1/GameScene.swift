@@ -16,7 +16,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var sanitizerBlob:SKSpriteNode!
     var scoreText:SKLabelNode!
     var gameTimerHandle:Timer!
-    var virusVariants = ["ball", "ColorCircle"]
+    var virusVariants = ["ball", "virus"]
     
     
     
