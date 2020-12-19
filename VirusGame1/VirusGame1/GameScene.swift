@@ -16,7 +16,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     var sanitizerBlob:SKSpriteNode!
     var scoreText:SKLabelNode!
     var gameTimerHandle:Timer!
-    var virusVariants = ["ball", "virus"]
+    var virusVariants = ["virus", "virus2"]
     
     
     
@@ -40,17 +40,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     //Properties that allow for each category to have a unique ID to detect collisions.
     let virusCat:UInt32 = 0x1 << 1
     let sanitizerBlobCat:UInt32 = 0x1 << 0
+    let screenBoundsCat:UInt32 = 0x1 << 2
     
     
     //Initial scene render function.
     func InitScene()
        {
+        let screenBounds = SKPhysicsBody.init(edgeLoopFrom: UIScreen.main.bounds)
+        self.physicsBody = screenBounds
+        self.physicsBody!.affectedByGravity = false
+        self.physicsBody!.usesPreciseCollisionDetection = true
+        self.physicsBody!.mass = 0
+        self.physicsBody!.restitution = 1
         
+        self.physicsBody!.categoryBitMask = screenBoundsCat
+        self.physicsBody!.contactTestBitMask = virusCat
+         self.physicsBody?.collisionBitMask = 0
         //Set a border around the screen to prevent virus from leaving screen.
         //let border = SKPhysicsBody(edgeLoopFrom: self.frame)
-       // border.friction = 0
-       // border.restitution = 1
-       // self.physicsBody = border
+       //border.friction = 0
+       //border.restitution = 1
+       //self.physicsBody = border
         
         //Set background colour of game.
         backgroundColor = UIColor(red: 45/255, green: 40/255, blue: 80/255, alpha: 1.0)
@@ -59,32 +69,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         SpawnPlayer()
         DisplayScore()
         
-        gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
+        gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.25, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
     }
     
     //Spawn virus function.
     @objc func SpawnVirus()
     {
         virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
-        let virus = SKSpriteNode(imageNamed: virusVariants[0])
-        let randVirusPos = GKRandomDistribution(lowestValue: 0, highestValue: 414)
+        let virus = SKSpriteNode(imageNamed: virusVariants[1])
+        let randVirusPos = GKRandomDistribution(lowestValue: 100, highestValue: 395)
         let position = CGFloat(randVirusPos.nextInt())
         virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.height)
-        virus.size = CGSize(width: frame.size.width/3, height: frame.size.width/3)
+        virus.size = CGSize(width: 100, height: 100)
         //virus.position = CGPoint(x: frame.midX, y: frame.maxY - virus.size.height)
        
+        //virus.physicsBody?.applyForce(CGVector(dx: -30, dy: -30))
         virus.physicsBody = SKPhysicsBody(circleOfRadius: virus.size.width / 2)
         virus.physicsBody?.isDynamic = true
         
         virus.physicsBody?.categoryBitMask = virusCat
         virus.physicsBody?.contactTestBitMask = sanitizerBlobCat
+        virus.physicsBody?.contactTestBitMask = screenBoundsCat
         virus.physicsBody?.collisionBitMask = 0
+       
         
         self.addChild(virus)
         
         let movementDur:TimeInterval = 6.0
         var movementArray = [SKAction]()
         
+        movementArray.append(SKAction.applyImpulse(CGVector(dx: -50, dy: -50), duration: 3))
         movementArray.append(SKAction.move(to: CGPoint(x: position, y: -virus.size.height), duration: movementDur))
         movementArray.append(SKAction.removeFromParent())
         
@@ -120,8 +134,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     }
     func ShootSanitizer()
     {
-        sanitizerBlob = SKSpriteNode(imageNamed: "ball")
-        sanitizerBlob.size = CGSize(width: 20, height:20)
+        sanitizerBlob = SKSpriteNode(imageNamed: "sanitizerBlob")
+        sanitizerBlob.size = CGSize(width: 75, height:75)
         sanitizerBlob.position = player.position
         sanitizerBlob.position.y  += 5
         
