@@ -31,6 +31,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     
     override func didMove(to view: SKView)
     {
+         let screenBounds = SKPhysicsBody(edgeLoopFrom: self.frame)
+        self.physicsBody = screenBounds
+        self.physicsBody!.affectedByGravity = false
+        self.physicsBody!.usesPreciseCollisionDetection = true
+        self.physicsBody!.mass = 0
+        self.physicsBody!.restitution = 1
+        
+        //self.physicsBody!.categoryBitMask = screenBoundsCat
+        //self.physicsBody!.contactTestBitMask = virusCat
+         self.physicsBody?.collisionBitMask = 0
         InitScene()
         self.physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
@@ -40,22 +50,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate
     //Properties that allow for each category to have a unique ID to detect collisions.
     let virusCat:UInt32 = 0x1 << 1
     let sanitizerBlobCat:UInt32 = 0x1 << 0
-    let screenBoundsCat:UInt32 = 0x1 << 2
-    
+    //let screenBoundsCat:UInt32 = 0x1 << 2
+   
     
     //Initial scene render function.
     func InitScene()
        {
-        let screenBounds = SKPhysicsBody.init(edgeLoopFrom: UIScreen.main.bounds)
-        self.physicsBody = screenBounds
-        self.physicsBody!.affectedByGravity = false
-        self.physicsBody!.usesPreciseCollisionDetection = true
-        self.physicsBody!.mass = 0
-        self.physicsBody!.restitution = 1
         
-        self.physicsBody!.categoryBitMask = screenBoundsCat
-        self.physicsBody!.contactTestBitMask = virusCat
-         self.physicsBody?.collisionBitMask = 0
+        
         //Set a border around the screen to prevent virus from leaving screen.
         //let border = SKPhysicsBody(edgeLoopFrom: self.frame)
        //border.friction = 0
@@ -83,22 +85,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         virus.size = CGSize(width: 100, height: 100)
         //virus.position = CGPoint(x: frame.midX, y: frame.maxY - virus.size.height)
        
-        //virus.physicsBody?.applyForce(CGVector(dx: -30, dy: -30))
+       
         virus.physicsBody = SKPhysicsBody(circleOfRadius: virus.size.width / 2)
         virus.physicsBody?.isDynamic = true
         
+        
         virus.physicsBody?.categoryBitMask = virusCat
         virus.physicsBody?.contactTestBitMask = sanitizerBlobCat
-        virus.physicsBody?.contactTestBitMask = screenBoundsCat
+        //virus.physicsBody?.contactTestBitMask = screenBoundsCat
         virus.physicsBody?.collisionBitMask = 0
        
         
         self.addChild(virus)
         
-        let movementDur:TimeInterval = 6.0
+        let movementDur:TimeInterval = 8.0
         var movementArray = [SKAction]()
         
-        movementArray.append(SKAction.applyImpulse(CGVector(dx: -50, dy: -50), duration: 3))
+        //movementArray.append(SKAction.applyImpulse(CGVector(dx: 50, dy: 50), duration: 3))
         movementArray.append(SKAction.move(to: CGPoint(x: position, y: -virus.size.height), duration: movementDur))
         movementArray.append(SKAction.removeFromParent())
         
@@ -157,5 +160,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate
         movementArray.append(SKAction.removeFromParent())
         
         sanitizerBlob.run(SKAction.sequence(movementArray))
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact)
+    {
+        var firstBody:SKPhysicsBody
+        var secondBody:SKPhysicsBody
+        
+        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask
+        {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        }
+        else
+        {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+        }
+        
+        //UNCOMMENT THIS TO TURN ON COLLISION (currently broken)
+       // if (firstBody.categoryBitMask & sanitizerBlobCat) != 0 && (secondBody.categoryBitMask & virusCat) != 0
+       // {
+           // blob_virusCollision(sanitizerBlob: firstBody.node as! SKSpriteNode, virus: secondBody.node as! SKSpriteNode)
+       // }
+        
+    }
+    
+    
+    func blob_virusCollision (sanitizerBlob:SKSpriteNode, virus:SKSpriteNode)
+    {
+    sanitizerBlob.removeFromParent()
+    virus.removeFromParent()
     }
 }
