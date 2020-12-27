@@ -19,6 +19,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var healthText:SKLabelNode!
     var gameTimerHandle:Timer!
     var virusVariants = ["virus", "virus2"]
+    var lastPosTouched: CGPoint?
     
     var motionHandle: CMMotionManager?
     
@@ -74,10 +75,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     {
         virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
         let virus = SKSpriteNode(imageNamed: virusVariants[0])
-        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width), highestValue: Int(self.frame.maxX) + Int(virus.size.width))
+        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width), highestValue: Int(self.frame.maxX) - Int(virus.size.width))
         let position = CGFloat(randVirusPos.nextInt())
         virus.zPosition = 1
-        virus.position = CGPoint(x: position, y: self.frame.size.height) //+ virus.size.height)
+        virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.width)
         virus.size = CGSize(width: 100, height: 100)
        
        
@@ -147,10 +148,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         self.addChild(healthText)
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?)
-    {
-        ShootSanitizer()
-    }
+    
     func ShootSanitizer()
     {
         sanitizerBlob = SKSpriteNode(imageNamed: "sanitizerBlob")
@@ -214,7 +212,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         health -= 10/**/
         if(health <= 0)
         {
-            player.removeFromParent()
+            //player.removeFromParent()
+            GameOver()
         }
     }
     func blob_virusCollision (sanitizerBlob:SKSpriteNode, virus:SKSpriteNode)
@@ -225,6 +224,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     override func update(_ currentTime: TimeInterval)
     {
+      
        if let accelerometerData = motionHandle?.accelerometerData
         {
             if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft
@@ -233,9 +233,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             }
             else
             {
-                virus.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * 500, dy: 0)
+                player.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * 500, dy: 0)
             }
         }
+        }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?)
+    {
+        ShootSanitizer()
+        lastPosTouched = nil
     }
+    func GameOver()
+    {
+        UserDefaults.standard.set(score, forKey: "YourScore")
+        if score > UserDefaults.standard.integer(forKey: "HighScore")
+        {
+            UserDefaults.standard.set(score, forKey: "HighScore")
+        }
+        let menuScene = MenuScene(size: view!.bounds.size)
+        view!.presentScene(menuScene)
+    }
+    
 }
 
