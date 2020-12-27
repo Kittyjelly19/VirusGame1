@@ -6,6 +6,7 @@
 //  Copyright © 2020 SYMES, BETHAN (Student). All rights reserved.
 //
 
+import CoreMotion
 import SpriteKit
 import GameplayKit
 
@@ -19,7 +20,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var gameTimerHandle:Timer!
     var virusVariants = ["virus", "virus2"]
     
-    
+    var motionHandle: CMMotionManager?
     
     
     var score: Int = 0
@@ -43,7 +44,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         InitScene()
         self.physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
-       
+       motionHandle = CMMotionManager()
+        motionHandle?.startAccelerometerUpdates()
         
     }
     //Properties that allow for each category to have a unique ID to detect collisions.
@@ -72,11 +74,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     {
         virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
         let virus = SKSpriteNode(imageNamed: virusVariants[0])
-        let randVirusPos = GKRandomDistribution(lowestValue: 20, highestValue: 400)
+        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width), highestValue: Int(self.frame.maxX) + Int(virus.size.width))
         let position = CGFloat(randVirusPos.nextInt())
-        virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.height)
+        virus.zPosition = 1
+        virus.position = CGPoint(x: position, y: self.frame.size.height) //+ virus.size.height)
         virus.size = CGSize(width: 100, height: 100)
-        //virus.position = CGPoint(x: frame.midX, y: frame.maxY - virus.size.height)
+       
        
        
         virus.physicsBody = SKPhysicsBody(circleOfRadius: virus.size.width / 2)
@@ -94,11 +97,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         let movementDur:TimeInterval = 8.0
         var movementArray = [SKAction]()
         
-        //if(virus.position.x >= frame.maxX) //|| virus.position.x >= frame.minX)
-       // {
-            //movementArray.append(SKAction.applyImpulse(CGVector(dx:50, dy:50), duration: 2))
-       // }
-        //movementArray.append(SKAction.applyImpulse(CGVector(dx: 50, dy: 50), duration: 3))
+        
+        
         movementArray.append(SKAction.move(to: CGPoint(x: position, y: -virus.size.height), duration: movementDur))
         movementArray.append(SKAction.removeFromParent())
         
@@ -112,6 +112,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         //Adding player to scene
         player = SKSpriteNode(imageNamed: "bottle")
         player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
+        player.zPosition = 1
         player.size = CGSize(width:100, height:150)
         
         player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height / 2)
@@ -155,6 +156,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         sanitizerBlob = SKSpriteNode(imageNamed: "sanitizerBlob")
         sanitizerBlob.size = CGSize(width: 75, height:75)
         sanitizerBlob.position = player.position
+        sanitizerBlob.zPosition = 0
         sanitizerBlob.position.y  += 5
         
         sanitizerBlob.physicsBody = SKPhysicsBody(circleOfRadius: sanitizerBlob.size.width / 2)
@@ -168,7 +170,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         self.addChild(sanitizerBlob)
         
-        let movementDur:TimeInterval = 0.3
+        let movementDur:TimeInterval = 0.4
         var movementArray = [SKAction]()
         
     
@@ -209,13 +211,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     func virus_playerCollision (virus:SKSpriteNode, player:SKSpriteNode)
     {
         virus.removeFromParent()
-        health -= 5
+        health -= 10/**/
+        if(health <= 0)
+        {
+            player.removeFromParent()
+        }
     }
     func blob_virusCollision (sanitizerBlob:SKSpriteNode, virus:SKSpriteNode)
     {
     sanitizerBlob.removeFromParent()
     virus.removeFromParent()
         score += 10
+    }
+    override func update(_ currentTime: TimeInterval)
+    {
+       if let accelerometerData = motionHandle?.accelerometerData
+        {
+            if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft
+            {
+                player.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * -500, dy: 0)
+            }
+            else
+            {
+                virus.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * 500, dy: 0)
+            }
+        }
     }
 }
 
