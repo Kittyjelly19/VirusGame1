@@ -75,10 +75,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     {
         virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
         let virus = SKSpriteNode(imageNamed: virusVariants[0])
-        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width * 1.5), highestValue: Int(self.frame.maxX) - Int(virus.size.width * 1.5))
+        let randVirusPos = GKRandomDistribution(lowestValue: 0, highestValue: Int(frame.width))
         let position = CGFloat(randVirusPos.nextInt())
         virus.zPosition = 1
-        virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.width)
+        virus.position = CGPoint(x: position, y: frame.size.height + virus.size.width)
         virus.size = CGSize(width: 100, height: 100)
        
        
@@ -228,12 +228,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         if let lastPosTouched = lastPosTouched
         {
             let diff = CGPoint(x: lastPosTouched.x - player.position.x, y: 0)
-            player.physicsBody?.velocity = CGVector(dx: diff.x, dy: 0)
+            
+            if player.position.x >= self.frame.midX || player.position.x <= self.frame.maxX - player.size.width * 2
+            {
+                player.physicsBody?.velocity = CGVector(dx: diff.x, dy: 0)
+            }
+            else
+            {
+                player.physicsBody?.velocity = CGVector(dx:0, dy:0)
+            }
+            
         }
         #else
        if let accelerometerData = motionHandle?.accelerometerData
         {
-            if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft 
+            if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft && player.position.x >= self.frame.minX + player.size.width
             {
                 
                 player.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * -500, dy: 0)
