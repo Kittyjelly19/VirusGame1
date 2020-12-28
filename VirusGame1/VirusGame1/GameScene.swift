@@ -224,7 +224,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     }
     override func update(_ currentTime: TimeInterval)
     {
-      
+        #if targetEnvironment(simulator)
+        if let lastPosTouched = lastPosTouched
+        {
+            let diff = CGPoint(x: lastPosTouched.x - player.position.x, y: 0)
+            player.physicsBody?.velocity = CGVector(dx: diff.x, dy: 0)
+        }
+        #else
        if let accelerometerData = motionHandle?.accelerometerData
         {
             if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft 
@@ -237,8 +243,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
                 player.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * 500, dy: 0)
             }
         }
-        }
-    
+        #endif
+    }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
+    {
+        guard let touch = touches.first else {return}
+        let location = touch.location(in: self)
+        lastPosTouched = location
+    }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?)
+    {
+        guard let touch = touches.first else {return}
+        let location = touch.location(in: self)
+        lastPosTouched = location
+    }
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?)
     {
         ShootSanitizer()
