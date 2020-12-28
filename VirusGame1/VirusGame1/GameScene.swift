@@ -67,7 +67,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         SpawnPlayer()
         DisplayScore()
         DisplayHealth()
-        gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.25, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
+        gameTimerHandle = Timer.scheduledTimer(timeInterval: 0.75, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
     }
     
     //Spawn virus function.
@@ -75,7 +75,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     {
         virusVariants = GKRandomSource.sharedRandom().arrayByShufflingObjects(in: virusVariants) as! [String]
         let virus = SKSpriteNode(imageNamed: virusVariants[0])
-        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width), highestValue: Int(self.frame.maxX) - Int(virus.size.width))
+        let randVirusPos = GKRandomDistribution(lowestValue: Int(self.frame.minX) + Int(virus.size.width * 1.5), highestValue: Int(self.frame.maxX) - Int(virus.size.width * 1.5))
         let position = CGFloat(randVirusPos.nextInt())
         virus.zPosition = 1
         virus.position = CGPoint(x: position, y: self.frame.size.height + virus.size.width)
@@ -95,7 +95,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         self.addChild(virus)
         
-        let movementDur:TimeInterval = 8.0
+        let movementDur:TimeInterval = 4.0
         var movementArray = [SKAction]()
         
         
@@ -116,7 +116,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         player.zPosition = 1
         player.size = CGSize(width:100, height:150)
         
-        player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height / 2)
+        player.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(player.size.width / 2))
         player.physicsBody?.isDynamic = true
         player.physicsBody?.categoryBitMask = playerCat
         player.physicsBody?.contactTestBitMask = virusCat
@@ -227,8 +227,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
       
        if let accelerometerData = motionHandle?.accelerometerData
         {
-            if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft
+            if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft 
             {
+                
                 player.physicsBody?.velocity = CGVector(dx: accelerometerData.acceleration.x * -500, dy: 0)
             }
             else
