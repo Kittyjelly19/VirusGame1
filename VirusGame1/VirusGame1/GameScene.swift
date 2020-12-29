@@ -38,11 +38,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     
     var health: Int = 100
     {
+        //Updates the health text with the current health value.
         didSet
         {
             healthText.text = "Health: \(health)"
         }
     }
+   
+    
     override func didMove(to view: SKView)
     {
         InitScene()
@@ -52,12 +55,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         motionHandle?.startAccelerometerUpdates()
         
     }
+    
     //Properties that allow for each category to have a unique ID to detect collisions.
     let virusCat:UInt32 = 0x1 << 1
     let sanitizerBlobCat:UInt32 = 0x1 << 0
     let playerCat:UInt32 = 0x1 << 2
     let LwallCat:UInt32 = 0x1 << 3
     let RwallCat:UInt32 = 0x1 << 4
+    
+    
     //Initial scene render function.
     func InitScene()
        {
@@ -72,12 +78,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         SpawnPlayer()
         DisplayScore()
         DisplayHealth()
+        
         gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
     }
     
-    
+    //Function to create bounds preventing player from leaving the screen.
     func SetPlayerBounds()
     {
+        //Screen left
         let gameWallL = SKShapeNode(rectOf: CGSize(width: 10, height: frame.size.height))
         gameWallL.fillColor = SKColor(red: 45/255, green: 100/255, blue: 80/255, alpha: 0.0)
         gameWallL.strokeColor = SKColor(red: 45/255, green: 100/255, blue: 80/255, alpha: 0.0)
@@ -89,6 +97,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         gameWallL.physicsBody?.isDynamic = false
         addChild(gameWallL)
         
+        //Screen right
         let gameWallR = SKShapeNode(rectOf: CGSize(width: 10, height: frame.size.height))
         gameWallR.fillColor = SKColor(red: 45/255, green: 100/255, blue: 80/255, alpha: 0.0)
         gameWallR.strokeColor = SKColor(red: 45/255, green: 100/255, blue: 80/255, alpha: 0.0)
@@ -100,6 +109,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         gameWallR.physicsBody?.isDynamic = false
         addChild(gameWallR)
     }
+    
+    
     //Spawn virus function.
     @objc func SpawnVirus()
     {
@@ -116,16 +127,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         virus.physicsBody?.categoryBitMask = virusCat
         virus.physicsBody?.contactTestBitMask = sanitizerBlobCat
-       
         virus.physicsBody?.collisionBitMask = 0
        
-        
         self.addChild(virus)
         
         let movementDur:TimeInterval = 4.0
         var movementArray = [SKAction]()
-        
-        
         
         movementArray.append(SKAction.move(to: CGPoint(x: position, y: -virus.size.height), duration: movementDur))
         movementArray.append(SKAction.removeFromParent())
@@ -147,12 +154,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
         player.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(player.size.width / 2))
         player.physicsBody?.allowsRotation = false
-       // player.physicsBody?.affectedByGravity = false
+       
         player.physicsBody?.isDynamic = true
         player.physicsBody?.categoryBitMask = playerCat
         player.physicsBody?.contactTestBitMask = virusCat
         player.physicsBody?.usesPreciseCollisionDetection = true
-        //player.physicsBody?.collisionBitMask = 0
+                    
         
         self.addChild(player)
         self.physicsWorld.contactDelegate = self
@@ -169,6 +176,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         self.addChild(scoreText)
     }
     
+    
+    //Display health function
     func DisplayHealth()
     {
         healthText = SKLabelNode(text: "Score: 0")
@@ -179,14 +188,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         self.addChild(healthText)
     }
     
-    
+    //Spawn and shoot sanitizer
     func ShootSanitizer()
     {
         sanitizerBlob = SKSpriteNode(imageNamed: "sanitizerBlob")
         sanitizerBlob.size = CGSize(width: 75, height:75)
         sanitizerBlob.position = player.position
         sanitizerBlob.zPosition = 0
-        sanitizerBlob.position.y  += 50
+        sanitizerBlob.position.y  += 40
         
         sanitizerBlob.physicsBody = SKPhysicsBody(circleOfRadius: sanitizerBlob.size.width / 2)
         sanitizerBlob.physicsBody?.isDynamic = true
@@ -208,6 +217,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         sanitizerBlob.run(SKAction.sequence(movementArray))
     }
     
+    //Setting contact bodies.
     func didBegin(_ contact: SKPhysicsContact)
     {
         var firstBody:SKPhysicsBody
@@ -230,6 +240,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             blob_virusCollision(sanitizerBlob: firstBody.node as! SKSpriteNode, virus: secondBody.node as! SKSpriteNode)
         }
         
+        //Checks collision between virus and player
         if(firstBody.categoryBitMask & virusCat) != 0 && (secondBody.categoryBitMask & playerCat) != 0
         {
             virus_playerCollision(virus: firstBody.node as! SKSpriteNode, player: secondBody.node as! SKSpriteNode)
@@ -237,18 +248,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         
     }
     
+    //What happens when player collides with virus.
     func virus_playerCollision (virus:SKSpriteNode, player:SKSpriteNode)
     {
         virus.removeFromParent()
         health -= 10
         if(health <= 0)
         {
-            //player.removeFromParent()
             GameOver()
         }
     }
     
-    
+    //What happens when the sanitizer collides with a virus
     func blob_virusCollision (sanitizerBlob:SKSpriteNode, virus:SKSpriteNode)
     {
     sanitizerBlob.removeFromParent()
@@ -256,13 +267,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         score += 10
     }
    
-    
+    //Update function
     override func update(_ currentTime: TimeInterval)
     {
+        //Keeps player y pos the same throughout the game.
+        player.position.y = frame.minY + player.size.height
         
-            player.position.y = frame.minY + player.size.height
-        
+        //#if for running on simulator or on a device.
         #if targetEnvironment(simulator)
+       
+        //Use touch to replicate tilt.
         if let lastPosTouched = lastPosTouched
         {
             let diff = CGPoint(x: lastPosTouched.x - player.position.x, y: 0)
@@ -274,6 +288,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         }
        
         #else
+        //Use accelerometer data.
        if let accelerometerData = motionHandle?.accelerometerData
         {
             if UIDevice.current.orientation == UIDeviceOrientation.landscapeLeft && player.position.x >= self.frame.minX + player.size.width
@@ -292,6 +307,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
     {
+        //For finding touch position to simulate tilt.
         guard let touch = touches.first else {return}
         let location = touch.location(in: self)
         lastPosTouched = location
@@ -300,6 +316,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?)
     {
+        //For finding touch position to simulate tilt.
         guard let touch = touches.first else {return}
         let location = touch.location(in: self)
         lastPosTouched = location
@@ -307,13 +324,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?)
     {
+        //Touch for shooting and tilt simulation.
         ShootSanitizer()
         lastPosTouched = nil
     }
     
     
+    //What happens when the game is over
     func GameOver()
     {
+        //Setting the score and high score for the menu and storing the vaules.
         UserDefaults.standard.set(score, forKey: "YourScore")
         if score > UserDefaults.standard.integer(forKey: "HighScore")
         {
