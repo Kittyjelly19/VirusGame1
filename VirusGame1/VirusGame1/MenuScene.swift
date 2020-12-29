@@ -6,7 +6,7 @@
 //  Copyright © 2020 SYMES, BETHAN (Student). All rights reserved.
 //
 import SpriteKit
-//import UIKit
+import UIKit
 
 class MenuScene: SKScene
 {
@@ -32,16 +32,17 @@ class MenuScene: SKScene
     func DisplayHighScore()
     {
         highScoreText = SKLabelNode(text:"High Score:" + "\(UserDefaults.standard.integer(forKey: "HighScore"))")
-        highScoreText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.1)
-        highScoreText.fontSize = 40
-        highScoreText.fontColor = UIColor.magenta
+        highScoreText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.5)
+        highScoreText.fontSize = 35
+        highScoreText.fontColor = UIColor.cyan
         addChild(highScoreText)
     }
     func DisplayYourScore()
     {
         yourScoreText = SKLabelNode(text:"Your Score:" + "\(UserDefaults.standard.integer(forKey: "YourScore"))")
-        yourScoreText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.25)
-        yourScoreText.fontSize = 40
+        
+        yourScoreText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.7)
+        yourScoreText.fontSize = 35
         yourScoreText.fontColor = UIColor.magenta
         addChild(yourScoreText)
     }
@@ -57,13 +58,13 @@ class MenuScene: SKScene
     {
         virusImage = SKSpriteNode(imageNamed: "virus")
         virusImage.size = CGSize(width: 200, height: 200)
-        virusImage.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.5)
+        virusImage.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.25)
         addChild(virusImage)
         
         virusGameText = SKLabelNode(text:"The Virus Game")
-        virusGameText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 2)
-        virusGameText.fontSize = 40
-        virusGameText.fontColor = UIColor.magenta
+        virusGameText.position = CGPoint(x: self.frame.maxX / 2, y: self.frame.maxY / 1.1)
+        virusGameText.fontSize = 42
+        virusGameText.fontColor = UIColor.systemGreen
         addChild(virusGameText)
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)

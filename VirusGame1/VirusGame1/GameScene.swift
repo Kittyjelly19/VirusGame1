@@ -162,9 +162,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     func DisplayScore()
     {
         scoreText = SKLabelNode(text: "Score: 0")
-        scoreText.position = CGPoint(x:100, y:self.frame.size.height - 100)
+        scoreText.position = CGPoint(x:self.frame.size.width / 3.45, y:self.frame.size.height - 100)
         scoreText.fontSize = 40
-        scoreText.fontColor = UIColor.magenta
+        scoreText.fontColor = UIColor.systemTeal
         score = 0
         self.addChild(scoreText)
     }
@@ -172,7 +172,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     func DisplayHealth()
     {
         healthText = SKLabelNode(text: "Score: 0")
-        healthText.position = CGPoint (x:self.frame.size.width / 1.2, y:self.frame.size.height - 100)
+        healthText.position = CGPoint (x:self.frame.size.width / 1.35, y:self.frame.size.height - 100)
         healthText.fontSize = 40
         healthText.fontColor = UIColor.green
         health = 100
