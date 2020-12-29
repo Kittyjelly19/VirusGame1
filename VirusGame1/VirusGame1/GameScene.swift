@@ -20,8 +20,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     var gameTimerHandle:Timer!
     var virusVariants = ["virus", "virus2"]
     var lastPosTouched: CGPoint?
-    
+    var gameWallL: SKShapeNode!
+    var gameWallR: SKShapeNode!
     var motionHandle: CMMotionManager?
+    
+    
     
     
     var score: Int = 0
@@ -53,8 +56,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     let virusCat:UInt32 = 0x1 << 1
     let sanitizerBlobCat:UInt32 = 0x1 << 0
     let playerCat:UInt32 = 0x1 << 2
-   
-    
+    let LwallCat:UInt32 = 0x1 << 3
+    let RwallCat:UInt32 = 0x1 << 4
     //Initial scene render function.
     func InitScene()
        {
@@ -63,13 +66,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         //Set background colour of game.
         backgroundColor = UIColor(red: 45/255, green: 40/255, blue: 80/255, alpha: 1.0)
         
+        
         //Spawn scene components
+        SetPlayerBounds()
         SpawnPlayer()
         DisplayScore()
         DisplayHealth()
-        gameTimerHandle = Timer.scheduledTimer(timeInterval: 0.75, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
+        gameTimerHandle = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(SpawnVirus), userInfo: nil, repeats: true)
     }
     
+    
+    func SetPlayerBounds()
+    {
+        let gameWallL = SKShapeNode(rectOf: CGSize(width: 10, height: frame.size.height))
+        gameWallL.fillColor = SKColor(red: 50/255, green: 100/255, blue: 100/255, alpha: 1.0)
+        gameWallL.strokeColor = SKColor(red: 50/255, green: 100/255, blue: 100/255, alpha: 1.0)
+        gameWallL.position = CGPoint(x: frame.minX, y: frame.midY)
+        gameWallL.zPosition = 1
+        gameWallL.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 10, height: frame.size.height))
+        gameWallL.physicsBody?.categoryBitMask = LwallCat
+        gameWallL.physicsBody?.contactTestBitMask = playerCat
+       // gameWallL.physicsBody?.collisionBitMask = 0
+        gameWallL.physicsBody?.isDynamic = false
+        addChild(gameWallL)
+        
+        let gameWallR = SKShapeNode(rectOf: CGSize(width: 10, height: frame.size.height))
+        gameWallR.fillColor = SKColor(red: 50/255, green: 100/255, blue: 100/255, alpha: 1.0)
+        gameWallR.strokeColor = SKColor(red: 50/255, green: 100/255, blue: 100/255, alpha: 1.0)
+        gameWallR.position = CGPoint(x: frame.maxX, y: frame.midY)
+        gameWallR.zPosition = 1
+        gameWallR.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 10, height: frame.size.height))
+        gameWallR.physicsBody?.categoryBitMask = RwallCat
+        gameWallR.physicsBody?.contactTestBitMask = playerCat
+        //gameWallR.physicsBody?.collisionBitMask = 0
+        gameWallR.physicsBody?.isDynamic = false
+        addChild(gameWallR)
+    }
     //Spawn virus function.
     @objc func SpawnVirus()
     {
@@ -90,7 +122,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         virus.physicsBody?.categoryBitMask = virusCat
         virus.physicsBody?.contactTestBitMask = sanitizerBlobCat
        
-        virus.physicsBody?.collisionBitMask = 0
+        //virus.physicsBody?.collisionBitMask = 0
        
         
         self.addChild(virus)
@@ -110,18 +142,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     //Spawn player function
     func SpawnPlayer()
     {
+        
+        
         //Adding player to scene
         player = SKSpriteNode(imageNamed: "bottle")
         player.position = CGPoint(x: frame.midX, y: frame.minY + player.size.height)
         player.zPosition = 1
-        player.size = CGSize(width:100, height:150)
+        player.size = CGSize(width: 100, height: 150)
         
         player.physicsBody = SKPhysicsBody(circleOfRadius: CGFloat(player.size.width / 2))
+        player.physicsBody?.allowsRotation = false
+       // player.physicsBody?.affectedByGravity = false
         player.physicsBody?.isDynamic = true
         player.physicsBody?.categoryBitMask = playerCat
         player.physicsBody?.contactTestBitMask = virusCat
-         player.physicsBody?.usesPreciseCollisionDetection = true
-        player.physicsBody?.collisionBitMask = 0
+        player.physicsBody?.contactTestBitMask = virusCat
+        player.physicsBody?.usesPreciseCollisionDetection = true
+      // player.physicsBody?.collisionBitMask = 1
         
         self.addChild(player)
         self.physicsWorld.contactDelegate = self
@@ -152,10 +189,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
     func ShootSanitizer()
     {
         sanitizerBlob = SKSpriteNode(imageNamed: "sanitizerBlob")
-        sanitizerBlob.size = CGSize(width: 75, height:75)
+        sanitizerBlob.size = CGSize(width: self.frame.width / 6, height:self.frame.height / 6)
         sanitizerBlob.position = player.position
         sanitizerBlob.zPosition = 0
-        sanitizerBlob.position.y  += 5
+        sanitizerBlob.position.y  += 250
         
         sanitizerBlob.physicsBody = SKPhysicsBody(circleOfRadius: sanitizerBlob.size.width / 2)
         sanitizerBlob.physicsBody?.isDynamic = true
@@ -204,6 +241,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         {
             virus_playerCollision(virus: firstBody.node as! SKSpriteNode , player: secondBody.node as! SKSpriteNode)
         }
+        
     }
     
     func virus_playerCollision (virus:SKSpriteNode, player:SKSpriteNode)
@@ -216,29 +254,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
             GameOver()
         }
     }
+    
+    
     func blob_virusCollision (sanitizerBlob:SKSpriteNode, virus:SKSpriteNode)
     {
     sanitizerBlob.removeFromParent()
     virus.removeFromParent()
         score += 10
     }
+   
+    
     override func update(_ currentTime: TimeInterval)
     {
+        if player.position.y != frame.minY + player.size.height
+        {
+            player.position.y = frame.minY + player.size.height
+        }
         #if targetEnvironment(simulator)
         if let lastPosTouched = lastPosTouched
         {
             let diff = CGPoint(x: lastPosTouched.x - player.position.x, y: 0)
             
-            if player.position.x >= self.frame.midX || player.position.x <= self.frame.maxX - player.size.width * 2
-            {
-                player.physicsBody?.velocity = CGVector(dx: diff.x, dy: 0)
-            }
-            else
-            {
-                player.physicsBody?.velocity = CGVector(dx:0, dy:0)
-            }
+            
+            player.physicsBody?.velocity = CGVector(dx: diff.x, dy: 0)
+           
             
         }
+       
         #else
        if let accelerometerData = motionHandle?.accelerometerData
         {
@@ -254,12 +296,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         }
         #endif
     }
+   
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?)
     {
         guard let touch = touches.first else {return}
         let location = touch.location(in: self)
         lastPosTouched = location
     }
+    
+    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?)
     {
         guard let touch = touches.first else {return}
@@ -272,6 +318,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate{
         ShootSanitizer()
         lastPosTouched = nil
     }
+    
+    
     func GameOver()
     {
         UserDefaults.standard.set(score, forKey: "YourScore")
